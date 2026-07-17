@@ -72,18 +72,6 @@ Next phase:
 - Log Analytics and Azure Monitor
 - Alerts and backup
 
-## Cost Management
-
-This environment is intended as a temporary portfolio lab.
-
-Cost controls include:
-
-- Small Linux VM size
-- VM auto-shutdown
-- Budget alerts
-- Temporary use of Azure Bastion
-- Short Log Analytics retention where supported
-- Complete resource cleanup after testing
 
 ## Virtual Machine Security
 
@@ -99,6 +87,25 @@ access Azure services without storing Azure credentials locally.
 
 Nginx was installed automatically using cloud-init, and the deployment
 was validated using Azure Run Command.
+
+## 📸 Deployment Screenshots
+
+A complete visual walkthrough of every deployment phase is available in:
+
+- [Screenshot Gallery](docs/screenshots/README.md)
+
+## Cost Management
+
+This environment is intended as a temporary portfolio lab.
+
+Cost controls include:
+
+- Small Linux VM size
+- VM auto-shutdown
+- Budget alerts
+- Temporary use of Azure Bastion
+- Short Log Analytics retention where supported
+- Complete resource cleanup after testing
 
 ## Disclaimer
 
