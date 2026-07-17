@@ -72,7 +72,6 @@ Next phase:
 - Log Analytics and Azure Monitor
 - Alerts and backup
 
-
 ## Virtual Machine Security
 
 The Linux virtual machine was deployed without a public IP address.
@@ -87,6 +86,45 @@ access Azure services without storing Azure credentials locally.
 
 Nginx was installed automatically using cloud-init, and the deployment
 was validated using Azure Run Command.
+
+## Azure Monitor & Log Analytics
+
+Implemented centralized monitoring for the Linux virtual machine using Azure Monitor and Log Analytics.
+
+### Components
+
+- Log Analytics Workspace
+- Azure Monitor Agent (AMA)
+- Data Collection Rule (DCR)
+- Data Collection Rule Association
+
+### Monitoring Configuration
+
+- Heartbeat monitoring
+- CPU utilization
+- Memory availability
+- Disk free space
+- Linux Syslog collection
+
+### Validation
+
+Monitoring was verified using Kusto Query Language (KQL):
+
+- Heartbeat
+- Performance counters
+- Syslog
+
+A custom Syslog event was generated from the VM using the Linux `logger` command and successfully ingested into Log Analytics.
+
+### Skills Demonstrated
+
+- Azure Monitor
+- Log Analytics Workspace
+- Azure Monitor Agent
+- Data Collection Rules
+- KQL
+- Infrastructure Monitoring
+- Linux Operations
 
 ## 📸 Deployment Screenshots
 
@@ -106,6 +144,15 @@ Cost controls include:
 - Temporary use of Azure Bastion
 - Short Log Analytics retention where supported
 - Complete resource cleanup after testing
+
+## Lessons Learned
+
+- Azure Monitor Agent requires a Data Collection Rule before telemetry is collected.
+- Installing the Azure Monitor Agent alone does not send monitoring data.
+- Data Collection Rule Associations connect monitored resources to monitoring policies.
+- Heartbeat data provides a quick way to validate successful agent communication.
+- KQL can be used to investigate VM health, performance, and Linux Syslog events.
+- Separating monitoring resources into a dedicated management resource group improves organization and reflects production practices.
 
 ## Disclaimer
 

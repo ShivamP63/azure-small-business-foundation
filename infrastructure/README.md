@@ -88,3 +88,39 @@ A harmless sample secret named `app-config` was created. The VM:
 4. Completed the operation without stored credentials, account keys, or service-principal secrets.
 
 The validation output displayed only secret metadata and value length. The secret value and access token were not printed.
+
+## Monitoring
+
+### Log Analytics Workspace
+
+| Setting | Value |
+|---------|------|
+| SKU | PerGB2018 |
+| Retention | 30 Days |
+| Region | Canada Central |
+
+### Azure Monitor Agent
+
+Installed on:
+
+- vm-contoso-app-dev-01
+
+Automatic extension upgrades enabled.
+
+### Data Collection Rule
+
+Collected data:
+
+- Heartbeat
+- CPU
+- Memory
+- Disk
+- Linux Syslog
+
+Destination:
+
+- Log Analytics Workspace
+
+Association:
+
+- vm-contoso-app-dev-01

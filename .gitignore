@@ -66,3 +66,11 @@ id_ed25519*
 
 # Windows
 Thumbs.db
+
+# Exclude local environment files containing secrets
+.env
+.env.local
+.env.*.local
+
+# Exclude package dependencies and virtual environments
+env/

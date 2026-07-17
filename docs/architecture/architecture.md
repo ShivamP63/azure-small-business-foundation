@@ -105,3 +105,11 @@ The vault uses Azure RBAC instead of legacy vault access policies.
 - Azure Bastion will be used only temporarily or through the free
   Developer SKU when supported.
 - Resources will be deleted after validation and screenshots are complete.
+
+Azure Monitor Agent
+        │
+        ▼
+Data Collection Rule
+        │
+        ▼
+Log Analytics Workspace

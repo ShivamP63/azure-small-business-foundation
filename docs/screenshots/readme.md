@@ -31,6 +31,16 @@ The screenshots provide visual evidence that every major deployment, configurati
 | 19 | [19-key-vault-secret.png](19-key-vault-secret.png) | Sample secret created within Azure Key Vault. |
 | 20 | [20-key-vault-managed-identity-rbac.png](20-key-vault-managed-identity-rbac.png) | Managed Identity granted least-privilege access to Azure Key Vault. |
 | 21 | [21-managed-identity-secret-retrieval.png](21-managed-identity-secret-retrieval.png) | Secret successfully retrieved from Azure Key Vault using the VM's Managed Identity without stored credentials. |
+| 22 | [22-log-analytics-workspace-overview.png](22-log-analytics-workspace-overview.png) | Azure Log Analytics Workspace deployed with centralized monitoring configuration. |
+| 23 | [23-log-analytics-retention-settings.png](23-log-analytics-retention-settings.png) | Log Analytics Workspace configured with a 30-day data retention policy for cost-effective monitoring. |
+| 24 | [24-azure-monitor-agent-extension.png](24-azure-monitor-agent-extension.png) | Azure Monitor Agent successfully installed and provisioned on the Linux virtual machine. |
+| 25 | [25-data-collection-rule-overview.png](25-data-collection-rule-overview.png) | Azure Monitor Data Collection Rule deployed for centralized Linux VM monitoring. |
+| 26 | [26-data-collection-rule-data-sources.png](26-data-collection-rule-data-sources.png) | Data Collection Rule configured to collect Linux performance counters and Syslog events. |
+| 27 | [27-data-collection-rule-destination.png](27-data-collection-rule-destination.png) | Log Analytics Workspace configured as the destination for collected monitoring data. |
+| 28 | [28-data-collection-rule-association.png](28-data-collection-rule-association.png) | Data Collection Rule successfully associated with the Linux virtual machine. |
+| 29 | [29-heartbeat-kql-results.png](29-heartbeat-kql-results.png) | Kusto Query Language (KQL) query verifying successful Azure Monitor Agent heartbeat communication. |
+| 30 | [30-performance-counters-kql-results.png](30-performance-counters-kql-results.png) | KQL query validating collection of Linux CPU, memory, and disk performance metrics. |
+| 31 | [31-syslog-kql-results.png](31-syslog-kql-results.png) | KQL query confirming successful ingestion of Linux Syslog events into Log Analytics. |
 
 ---
 
@@ -49,6 +59,13 @@ The screenshots demonstrate implementation of several Azure security best practi
 - Minimum TLS 1.2 enforcement
 - Purge Protection and Soft Delete enabled
 - Secure secret retrieval without passwords, connection strings, or access keys
+- Azure Monitor Agent for centralized VM monitoring
+- Data Collection Rules for controlled telemetry collection
+- Centralized Log Analytics Workspace
+- Linux performance monitoring (CPU, memory, and disk)
+- Centralized Linux Syslog collection
+- Kusto Query Language (KQL) used to validate monitoring data ingestion
+
 
 ---
 
