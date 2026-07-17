@@ -41,6 +41,14 @@ The remaining address space is reserved for future growth.
 - Application secrets will be stored in Azure Key Vault.
 - Monitoring data will be sent to a central Log Analytics workspace.
 
+### Administrative Access
+
+The virtual machine is deployed without a Public IP address.
+
+Administrative operations are demonstrated using Azure Run Command.
+
+For production deployments, Azure Bastion or a private management network (VPN/ExpressRoute) would provide interactive SSH access while keeping the VM private.
+
 ## Cost Decisions
 
 - Resources are deployed only for testing and documentation.
