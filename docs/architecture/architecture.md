@@ -49,6 +49,26 @@ Administrative operations are demonstrated using Azure Run Command.
 
 For production deployments, Azure Bastion or a private management network (VPN/ExpressRoute) would provide interactive SSH access while keeping the VM private.
 
+## Storage Design
+
+The workload uses an Azure Storage Account (StorageV2) for application files.
+
+Security decisions:
+
+- HTTPS required
+- Minimum TLS 1.2
+- Anonymous blob access disabled
+- Private blob container
+- Microsoft Entra ID authentication
+- Azure RBAC used for blob access
+- Storage account keys intentionally not used for blob operations
+
+Production improvements:
+
+- Private Endpoint
+- Storage Firewall
+- Disable Shared Key access after validating Managed Identity and Microsoft Entra authentication.
+
 ## Cost Decisions
 
 - Resources are deployed only for testing and documentation.

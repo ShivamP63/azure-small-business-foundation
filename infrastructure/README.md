@@ -27,3 +27,33 @@ Azure Run Command was used for initial workload validation.
 
 Interactive administrative access will be implemented separately using
 Azure Bastion.
+
+## Azure Storage
+
+### Storage Account
+
+| Property | Value |
+|----------|-------|
+| Resource Group | rg-contoso-workload-dev |
+| Region | Canada Central |
+| Kind | StorageV2 |
+| SKU | Standard_LRS |
+| HTTPS Only | Enabled |
+| Minimum TLS | TLS 1.2 |
+| Blob Public Access | Disabled |
+| Public Network Access | Enabled |
+| Shared Key Access | Enabled (temporary) |
+
+### Blob Container
+
+Container Name:
+
+app-files
+
+Authentication:
+
+- Microsoft Entra ID
+- Azure RBAC
+- Storage Blob Data Contributor
+
+A private blob container was created and validated by uploading a sample file using `--auth-mode login` without relying on storage account keys.

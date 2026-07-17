@@ -1,0 +1,4 @@
+Contoso Retail Services
+Azure Small-Business Foundation
+Purpose: Validate private Azure Blob Storage access
+Environment: Development
