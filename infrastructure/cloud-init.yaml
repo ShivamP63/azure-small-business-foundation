@@ -1,0 +1,26 @@
+#cloud-config
+package_update: true
+packages:
+  - nginx
+
+write_files:
+  - path: /var/www/html/index.html
+    permissions: '0644'
+    owner: root:root
+    content: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Contoso Internal Portal</title>
+      </head>
+      <body>
+        <h1>Contoso Internal Portal</h1>
+        <p>Hosted on a private Azure Linux virtual machine.</p>
+        <p>Environment: Development</p>
+      </body>
+      </html>
+
+runcmd:
+  - systemctl enable nginx
+  - systemctl restart nginx

@@ -1,0 +1,23 @@
+# Shell scripts
+*.sh text eol=lf
+
+# YAML
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Terraform
+*.tf text eol=lf
+*.tfvars text eol=lf
+
+# Markdown
+*.md text eol=lf
+
+# JSON
+*.json text eol=lf
+
+# PowerShell
+*.ps1 text eol=crlf
+
+# Windows batch
+*.bat text eol=crlf
+*.cmd text eol=crlf

@@ -42,3 +42,27 @@ terraform.rc
 # Optional: ignore plan files saved before destroying Terraform configuration
 # Uncomment the line below if you want to ignore planout files.
 # planout
+# Local logs
+logs/
+
+# Azure CLI output
+*.log
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# SSH keys
+id_rsa*
+id_ed25519*
+*.pem
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
