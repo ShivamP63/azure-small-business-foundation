@@ -106,10 +106,21 @@ The vault uses Azure RBAC instead of legacy vault access policies.
   Developer SKU when supported.
 - Resources will be deleted after validation and screenshots are complete.
 
+
+Linux VM
+     │
 Azure Monitor Agent
-        │
-        ▼
+     │
 Data Collection Rule
-        │
-        ▼
+     │
 Log Analytics Workspace
+     │
+ ┌──────────────┐
+ │              │
+Metric Alert    Scheduled Query Alert
+ │              │
+ └──────┬───────┘
+        │
+ Action Group
+        │
+ Email Notifications

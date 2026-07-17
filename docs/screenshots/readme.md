@@ -41,6 +41,13 @@ The screenshots provide visual evidence that every major deployment, configurati
 | 29 | [29-heartbeat-kql-results.png](29-heartbeat-kql-results.png) | Kusto Query Language (KQL) query verifying successful Azure Monitor Agent heartbeat communication. |
 | 30 | [30-performance-counters-kql-results.png](30-performance-counters-kql-results.png) | KQL query validating collection of Linux CPU, memory, and disk performance metrics. |
 | 31 | [31-syslog-kql-results.png](31-syslog-kql-results.png) | KQL query confirming successful ingestion of Linux Syslog events into Log Analytics. |
+| 32 | [32-action-group-overview.png](32-action-group-overview.png) | Azure Monitor Action Group configured to deliver email notifications for monitoring alerts. |
+| 33 | [33-high-cpu-alert-rule.png](33-high-cpu-alert-rule.png) | High CPU metric alert configured to detect sustained virtual machine CPU utilization above the defined threshold. |
+| 34 | [34-heartbeat-alert-rule.png](34-heartbeat-alert-rule.png) | Scheduled Query alert configured to detect missing Azure Monitor heartbeats from the Linux virtual machine. |
+| 35 | [35-high-cpu-alert-fired-email.png](35-high-cpu-alert-fired-email.png) | Azure Monitor email notification confirming the High CPU metric alert fired successfully. |
+| 36 | [36-high-cpu-alert-resolved-email.png](36-high-cpu-alert-resolved-email.png) | Azure Monitor email notification confirming the High CPU metric alert resolved automatically after CPU utilization returned to normal. |
+| 37 | [37-heartbeat-alert-fired-email.png](37-heartbeat-alert-fired-email.png) | Azure Monitor email notification confirming the missing heartbeat alert fired successfully after the virtual machine was stopped. |
+| 38 | [38-heartbeat-alert-resolved-email.png](38-heartbeat-alert-resolved-email.png) | Azure Monitor email notification confirming heartbeat monitoring resumed successfully after the virtual machine was restarted. |
 
 ---
 

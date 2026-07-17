@@ -124,3 +124,29 @@ Destination:
 Association:
 
 - vm-contoso-app-dev-01
+
+## Alerting
+
+### Action Group
+
+| Setting | Value |
+|---------|------|
+| Name | ag-contoso-operations-dev |
+| Notification | Email |
+| Common Alert Schema | Enabled |
+
+### Metric Alerts
+
+- High CPU utilization (>80%)
+
+### Scheduled Query Alerts
+
+- Missing VM heartbeat (>5 minutes)
+
+### Validation
+
+Alerts were tested successfully by:
+
+- Generating sustained CPU utilization.
+- Stopping and restarting the Linux virtual machine.
+- Verifying fired and resolved email notifications.
