@@ -57,3 +57,34 @@ Authentication:
 - Storage Blob Data Contributor
 
 A private blob container was created and validated by uploading a sample file using `--auth-mode login` without relying on storage account keys.
+
+## Azure Key Vault
+
+The security resource group contains an Azure Key Vault configured for application secret management.
+
+| Property | Value |
+|---|---|
+| Resource group | `rg-contoso-security-dev` |
+| Region | Canada Central |
+| SKU | Standard |
+| Authorization model | Azure RBAC |
+| Purge protection | Enabled |
+| Soft delete | Enabled |
+| Public network access | Enabled for lab validation |
+
+### Identity and Access
+
+The administrator was assigned the `Key Vault Secrets Officer` role to manage secrets.
+
+The Linux VM's system-assigned managed identity was assigned the `Key Vault Secrets User` role at the individual vault scope. This gives the workload read access to secrets without granting secret-management permissions.
+
+### Validation
+
+A harmless sample secret named `app-config` was created. The VM:
+
+1. Requested a Key Vault access token from Azure Instance Metadata Service.
+2. Used the token to call the Key Vault REST endpoint.
+3. Retrieved the secret through its managed identity.
+4. Completed the operation without stored credentials, account keys, or service-principal secrets.
+
+The validation output displayed only secret metadata and value length. The secret value and access token were not printed.

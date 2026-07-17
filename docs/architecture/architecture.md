@@ -69,6 +69,34 @@ Production improvements:
 - Storage Firewall
 - Disable Shared Key access after validating Managed Identity and Microsoft Entra authentication.
 
+## Secrets Management Design
+
+Application configuration values are stored in Azure Key Vault rather than directly on the virtual machine or in source control.
+
+The vault uses Azure RBAC instead of legacy vault access policies.
+
+### Role Separation
+
+- Administrators use the `Key Vault Secrets Officer` role to manage secrets.
+- The application VM uses the `Key Vault Secrets User` role to read secrets.
+- Both assignments are scoped to the individual Key Vault.
+
+### Managed Identity Flow
+
+1. The VM requests an OAuth token from Azure Instance Metadata Service.
+2. Microsoft Entra ID issues a token representing the VM's managed identity.
+3. The VM sends the token to Azure Key Vault.
+4. Key Vault evaluates the VM's RBAC assignment.
+5. The authorized secret is returned without stored credentials.
+
+### Security Decisions
+
+- System-assigned managed identity avoids credential storage.
+- Least-privilege RBAC separates administration from workload access.
+- Purge protection reduces the risk of permanent secret deletion.
+- Secret values and tokens are excluded from screenshots and source control.
+- A private endpoint and restricted network access are documented as production improvements.
+
 ## Cost Decisions
 
 - Resources are deployed only for testing and documentation.
