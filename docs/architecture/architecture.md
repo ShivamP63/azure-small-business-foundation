@@ -107,7 +107,7 @@ The vault uses Azure RBAC instead of legacy vault access policies.
 - Resources will be deleted after validation and screenshots are complete.
 
 
-Linux VM
+Linux VM  - Recovery Services Vault 
      │
 Azure Monitor Agent
      │

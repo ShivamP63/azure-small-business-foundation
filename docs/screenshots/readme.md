@@ -44,10 +44,14 @@ The screenshots provide visual evidence that every major deployment, configurati
 | 32 | [32-action-group-overview.png](32-action-group-overview.png) | Azure Monitor Action Group configured to deliver email notifications for monitoring alerts. |
 | 33 | [33-high-cpu-alert-rule.png](33-high-cpu-alert-rule.png) | High CPU metric alert configured to detect sustained virtual machine CPU utilization above the defined threshold. |
 | 34 | [34-heartbeat-alert-rule.png](34-heartbeat-alert-rule.png) | Scheduled Query alert configured to detect missing Azure Monitor heartbeats from the Linux virtual machine. |
-| 35 | [35-high-cpu-alert-fired-email.png](35-high-cpu-alert-fired-email.png) | Azure Monitor email notification confirming the High CPU metric alert fired successfully. |
-| 36 | [36-high-cpu-alert-resolved-email.png](36-high-cpu-alert-resolved-email.png) | Azure Monitor email notification confirming the High CPU metric alert resolved automatically after CPU utilization returned to normal. |
-| 37 | [37-heartbeat-alert-fired-email.png](37-heartbeat-alert-fired-email.png) | Azure Monitor email notification confirming the missing heartbeat alert fired successfully after the virtual machine was stopped. |
-| 38 | [38-heartbeat-alert-resolved-email.png](38-heartbeat-alert-resolved-email.png) | Azure Monitor email notification confirming heartbeat monitoring resumed successfully after the virtual machine was restarted. |
+| 35 | [35-high-cpu-alert-email-fired.png](35-high-cpu-alert-email-fired.png) | Azure Monitor email notification confirming the High CPU metric alert fired successfully. |
+| 36 | [36-high-cpu-alert-email-resolved.png](36-high-cpu-alert-email-resolved.png) | Azure Monitor email notification confirming the High CPU metric alert resolved automatically after CPU utilization returned to normal. |
+| 37 | [37-heartbeat-alert-email-fired.png](37-heartbeat-alert-email-fired.png) | Azure Monitor email notification confirming the missing heartbeat alert fired successfully after the virtual machine was stopped. |
+| 38 | [38-heartbeat-alert-email-resolved.png](38-heartbeat-alert-email-resolved.png) | Azure Monitor email notification confirming heartbeat monitoring resumed successfully after the virtual machine was restarted. |
+| 39 | [39-recovery-services-vault-overview.png](39-recovery-services-vault-overview.png) | Recovery Services Vault configured to protect Azure virtual machines using locally redundant backup storage. |
+| 40 | [40-vm-backup-item-overview.png](40-vm-backup-item-overview.png) | Protected virtual machine showing backup configuration, protection status, and associated backup policy. |
+| 41 | [41-backup-job-completed.png](41-backup-job-completed.png) | Completed on-demand Azure Backup job confirming successful creation of the initial virtual machine backup. |
+| 42 | [42-vm-recovery-point.png](42-vm-recovery-point.png) | Recovery point created successfully for the virtual machine with a file-system-consistent backup. |
 
 ---
 

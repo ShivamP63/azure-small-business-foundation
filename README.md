@@ -163,6 +163,27 @@ Both alerts were fully validated.
 - Operational Monitoring
 - Incident Validation
 
+## Azure Backup
+
+To provide basic disaster recovery capabilities, Azure Backup was configured using a Recovery Services Vault.
+
+### Implemented
+
+- Created a Recovery Services Vault
+- Applied governance tags
+- Configured Locally Redundant Storage (LRS)
+- Verified Soft Delete and Enhanced Security
+- Enabled backup protection for the Linux virtual machine
+- Triggered an on-demand backup
+- Verified successful backup completion
+- Verified creation of a file-system-consistent recovery point
+
+### Validation
+
+- Backup job completed successfully
+- Recovery point successfully created
+- Backup health verified in Azure Portal
+
 ## 📸 Deployment Screenshots
 
 A complete visual walkthrough of every deployment phase is available in:
