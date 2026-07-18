@@ -1,126 +1,134 @@
 # Architecture Design
 
-## Environment Type
+## Purpose
 
-Simplified small-business Azure foundation for a development workload.
+This design provides a small organization with a private application host, controlled identity-based access to platform services, centralized observability, alerting, and VM recovery while keeping the lab understandable and inexpensive.
 
-## Region
+## Logical Architecture
 
-Canada Central
+```mermaid
+flowchart TB
+  Admin[Cloud administrator]
+
+  subgraph Subscription[Azure subscription - Canada Central]
+    Budget[Budget alert]
+
+    subgraph NetworkRG[rg-contoso-network-dev]
+      VNet[vnet-contoso-dev - 10.20.0.0/16]
+      Mgmt[snet-management - 10.20.1.0/24]
+      Work[snet-workload - 10.20.2.0/24]
+      Private[snet-private-endpoints - 10.20.3.0/24]
+      NSG[Workload NSG]
+      VNet --- Mgmt
+      VNet --- Work
+      VNet --- Private
+      NSG --> Work
+    end
+
+    subgraph WorkloadRG[rg-contoso-workload-dev]
+      NIC[Private NIC]
+      VM[Ubuntu VM
+Nginx + AMA
+System-assigned identity]
+      Storage[StorageV2
+Private blob container]
+      NIC --> VM
+    end
+
+    subgraph SecurityRG[rg-contoso-security-dev]
+      KV[Key Vault
+Azure RBAC
+Soft delete + purge protection]
+    end
+
+    subgraph ManagementRG[rg-contoso-management-dev]
+      LAW[Log Analytics workspace
+30-day retention]
+      DCR[Linux Data Collection Rule]
+      CPU[High CPU metric alert]
+      HB[Missing heartbeat log alert]
+      AG[Action group
+Email notification]
+      RSV[Recovery Services vault
+LRS VM backup]
+    end
+  end
+
+  Admin -->|Portal / Azure CLI / Run Command| Subscription
+  Work --> NIC
+  VM -->|Managed identity + Key Vault Secrets User| KV
+  Admin -->|Entra ID + Storage Blob Data Contributor| Storage
+  VM -->|Azure Monitor Agent| DCR --> LAW
+  VM --> CPU
+  LAW --> HB
+  CPU --> AG
+  HB --> AG
+  VM --> RSV
+  Budget --> Admin
+```
 
 ## Resource Organization
 
-Resources are separated into four resource groups:
+| Resource group | Responsibility | Lifecycle rationale |
+|---|---|---|
+| `rg-contoso-network-dev` | VNet, subnets, NSGs | Shared connectivity changes less frequently than workloads |
+| `rg-contoso-workload-dev` | VM, NIC, storage | Application resources can be managed or removed together |
+| `rg-contoso-security-dev` | Key Vault and security controls | Separates sensitive services and access assignments |
+| `rg-contoso-management-dev` | Monitoring, alerts, action group, backup | Centralizes operational tooling and recovery services |
 
-- Networking
-- Workload
-- Security
-- Management
-
-This separation allows resources with different purposes and lifecycles
-to be managed independently.
+Common tags are `Project`, `Environment=Development`, `Owner`, `CostCenter=PortfolioLab`, `ManagedBy`, and an expiration date where applicable.
 
 ## Network Design
 
-The virtual network uses the address space `10.20.0.0/16`.
+The VNet address space is `10.20.0.0/16`.
 
-| Subnet | CIDR | Purpose |
+| Subnet | CIDR | Use |
 |---|---|---|
-| snet-management | 10.20.1.0/24 | Management connectivity |
-| snet-workload | 10.20.2.0/24 | Application virtual machines |
-| snet-private-endpoints | 10.20.3.0/24 | Future private endpoints |
+| `snet-management` | `10.20.1.0/24` | Reserved management connectivity |
+| `snet-workload` | `10.20.2.0/24` | Private application VM and NIC |
+| `snet-private-endpoints` | `10.20.3.0/24` | Reserved for future private endpoints |
 
-The remaining address space is reserved for future growth.
+The VM has no public IP. The workload subnet is protected by an NSG, and direct internet SSH is not part of the design. Azure Run Command supplied controlled administrative access during the lab. A production environment could add VPN/ExpressRoute or Bastion after a cost and security review; Bastion is not deployed in this repository.
 
-## Security Decisions
+## Identity and Secrets Flow
 
-- The application virtual machine will not receive a public IP address.
-- SSH will not be exposed directly to the internet.
-- The workload subnet is protected by a network security group.
-- SSH is allowed only from the management subnet.
-- Application secrets will be stored in Azure Key Vault.
-- Monitoring data will be sent to a central Log Analytics workspace.
+1. The VM requests a token from Azure Instance Metadata Service.
+2. Microsoft Entra ID issues a token for the VM's system-assigned managed identity.
+3. The VM calls Key Vault using that token.
+4. Key Vault evaluates the vault-scoped `Key Vault Secrets User` role assignment.
+5. The authorized secret is returned without a password, access key, or service-principal secret on disk.
 
-### Administrative Access
-
-The virtual machine is deployed without a Public IP address.
-
-Administrative operations are demonstrated using Azure Run Command.
-
-For production deployments, Azure Bastion or a private management network (VPN/ExpressRoute) would provide interactive SSH access while keeping the VM private.
+Administrative secret management uses the separate `Key Vault Secrets Officer` role, demonstrating separation of duties.
 
 ## Storage Design
 
-The workload uses an Azure Storage Account (StorageV2) for application files.
+The StorageV2 account uses Standard LRS, HTTPS-only access, minimum TLS 1.2, and disabled anonymous blob access. The application container is private. Data-plane operations were tested with Microsoft Entra ID and `Storage Blob Data Contributor` rather than storage keys.
 
-Security decisions:
+Public network and shared-key access remained enabled where required for lab validation. Private endpoints, firewall rules, and disabling shared keys are documented production hardening steps.
 
-- HTTPS required
-- Minimum TLS 1.2
-- Anonymous blob access disabled
-- Private blob container
-- Microsoft Entra ID authentication
-- Azure RBAC used for blob access
-- Storage account keys intentionally not used for blob operations
+## Monitoring and Alerting Flow
 
-Production improvements:
+Azure Monitor Agent runs on the VM. A Linux Data Collection Rule selects performance counters and Syslog facilities and sends them to the Log Analytics workspace.
 
-- Private Endpoint
-- Storage Firewall
-- Disable Shared Key access after validating Managed Identity and Microsoft Entra authentication.
+Collected telemetry includes:
 
-## Secrets Management Design
+- Heartbeat
+- Total CPU utilization
+- Available memory
+- Logical disk free space
+- `auth`, `authpriv`, `daemon`, `syslog`, and `user` Syslog facilities
 
-Application configuration values are stored in Azure Key Vault rather than directly on the virtual machine or in source control.
+A metric alert detects sustained high CPU. A scheduled-query alert detects missing heartbeat data. Both route through an action group using the common alert schema and were validated through fired and resolved email notifications.
 
-The vault uses Azure RBAC instead of legacy vault access policies.
+## Backup and Recovery
 
-### Role Separation
+A Recovery Services vault in Canada Central protects the VM with a daily policy. The vault uses locally redundant storage for this cost-conscious development lab. Soft delete and enhanced security were verified. An on-demand backup completed and produced a file-system-consistent recovery point.
 
-- Administrators use the `Key Vault Secrets Officer` role to manage secrets.
-- The application VM uses the `Key Vault Secrets User` role to read secrets.
-- Both assignments are scoped to the individual Key Vault.
+The project validates backup creation, not a destructive restore test. A production rollout would include recurring restore drills and defined RPO/RTO targets.
 
-### Managed Identity Flow
+## Key Trade-offs
 
-1. The VM requests an OAuth token from Azure Instance Metadata Service.
-2. Microsoft Entra ID issues a token representing the VM's managed identity.
-3. The VM sends the token to Azure Key Vault.
-4. Key Vault evaluates the VM's RBAC assignment.
-5. The authorized secret is returned without stored credentials.
-
-### Security Decisions
-
-- System-assigned managed identity avoids credential storage.
-- Least-privilege RBAC separates administration from workload access.
-- Purge protection reduces the risk of permanent secret deletion.
-- Secret values and tokens are excluded from screenshots and source control.
-- A private endpoint and restricted network access are documented as production improvements.
-
-## Cost Decisions
-
-- Resources are deployed only for testing and documentation.
-- A small Linux VM size will be selected.
-- VM auto-shutdown will be enabled.
-- Azure Bastion will be used only temporarily or through the free
-  Developer SKU when supported.
-- Resources will be deleted after validation and screenshots are complete.
-
-
-Linux VM  - Recovery Services Vault 
-     │
-Azure Monitor Agent
-     │
-Data Collection Rule
-     │
-Log Analytics Workspace
-     │
- ┌──────────────┐
- │              │
-Metric Alert    Scheduled Query Alert
- │              │
- └──────┬───────┘
-        │
- Action Group
-        │
- Email Notifications
+- **Private VM, simple administration:** Run Command avoids a public endpoint but is not a full replacement for persistent private connectivity.
+- **Cost over regional durability:** LRS backup is appropriate for the lab; GRS may be preferred for higher resilience requirements.
+- **Selective telemetry:** The DCR collects useful operational data without ingesting every possible log.
+- **Manual deployment with targeted Bicep:** The project prioritizes learning Azure administration. Full infrastructure-as-code coverage is intentionally reserved for a separate Terraform/Bicep project.

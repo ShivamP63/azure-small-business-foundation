@@ -1,0 +1,25 @@
+// Azure Small-Business Foundation - Linux security and operational events
+// Review warning-or-higher messages from authentication and system facilities.
+Syslog
+| where TimeGenerated >= ago(24h)
+| where Computer =~ "vm-contoso-app-dev-01"
+| where Facility in ("auth", "authpriv", "daemon", "syslog", "user")
+| where SeverityLevel in ("warning", "err", "crit", "alert", "emerg")
+| project TimeGenerated, Computer, Facility, SeverityLevel, ProcessName, HostIP, SyslogMessage
+| order by TimeGenerated desc
+
+// Authentication-related activity (run separately)
+Syslog
+| where TimeGenerated >= ago(7d)
+| where Computer =~ "vm-contoso-app-dev-01"
+| where Facility in ("auth", "authpriv")
+| where SyslogMessage has_any ("Failed password", "authentication failure", "invalid user", "Accepted publickey", "sudo")
+| summarize Events=count(), FirstSeen=min(TimeGenerated), LastSeen=max(TimeGenerated) by ProcessName, SyslogMessage
+| order by Events desc
+
+// Event-volume baseline by severity (run separately)
+Syslog
+| where TimeGenerated >= ago(7d)
+| where Computer =~ "vm-contoso-app-dev-01"
+| summarize EventCount=count() by bin(TimeGenerated, 1h), SeverityLevel
+| order by TimeGenerated desc

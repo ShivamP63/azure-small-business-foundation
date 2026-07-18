@@ -1,152 +1,102 @@
-# Infrastructure Deployment Notes
+# Infrastructure and Validation Notes
 
-## Linux VM provisioning
+This directory contains the reproducible artifacts used in the Azure Small-Business Foundation lab. Most Azure resources were created and validated interactively with Azure CLI so that each administration step could be understood and documented. The version-controlled Bicep template covers the Linux monitoring Data Collection Rule.
 
-The Linux virtual machine uses a pre-created network interface connected
-to the `snet-workload` subnet.
+## Files
 
-The virtual network is located in `rg-contoso-network-dev`, while the
-network interface and virtual machine are located in
-`rg-contoso-workload-dev`.
-
-Because the subnet is located in a different resource group from the
-network interface, the NIC deployment references the subnet by its full
-Azure resource ID.
-
-The VM has:
-
-- No public IP address
-- SSH-key authentication
-- A system-assigned managed identity
-- A Standard LRS operating-system disk
-- Nginx installed through cloud-init
-- Auto-shutdown enabled
-
-The VM is not directly reachable from the public internet.
-Azure Run Command was used for initial workload validation.
-
-Interactive administrative access will be implemented separately using
-Azure Bastion.
-
-## Azure Storage
-
-### Storage Account
-
-| Property | Value |
-|----------|-------|
-| Resource Group | rg-contoso-workload-dev |
-| Region | Canada Central |
-| Kind | StorageV2 |
-| SKU | Standard_LRS |
-| HTTPS Only | Enabled |
-| Minimum TLS | TLS 1.2 |
-| Blob Public Access | Disabled |
-| Public Network Access | Enabled |
-| Shared Key Access | Enabled (temporary) |
-
-### Blob Container
-
-Container Name:
-
-app-files
-
-Authentication:
-
-- Microsoft Entra ID
-- Azure RBAC
-- Storage Blob Data Contributor
-
-A private blob container was created and validated by uploading a sample file using `--auth-mode login` without relying on storage account keys.
-
-## Azure Key Vault
-
-The security resource group contains an Azure Key Vault configured for application secret management.
-
-| Property | Value |
+| Path | Purpose |
 |---|---|
-| Resource group | `rg-contoso-security-dev` |
-| Region | Canada Central |
-| SKU | Standard |
-| Authorization model | Azure RBAC |
-| Purge protection | Enabled |
-| Soft delete | Enabled |
-| Public network access | Enabled for lab validation |
+| `cloud-init.yaml` | Installs and starts Nginx during VM provisioning |
+| `env/project.env` | Non-secret project names and tag values |
+| `monitoring/dcr-linux-monitoring.bicep` | Linux performance and Syslog collection rule |
+| `../scripts/deploy.sh` | Validates the Azure session and deploys/updates the DCR |
+| `../scripts/cleanup.sh` | Guarded project cleanup helper |
 
-### Identity and Access
+Do not place subscription IDs, passwords, tokens, SSH private keys, storage keys, or secret values in tracked files.
 
-The administrator was assigned the `Key Vault Secrets Officer` role to manage secrets.
+## Final Resource Layout
 
-The Linux VM's system-assigned managed identity was assigned the `Key Vault Secrets User` role at the individual vault scope. This gives the workload read access to secrets without granting secret-management permissions.
+| Area | Resource group | Main resources |
+|---|---|---|
+| Network | `rg-contoso-network-dev` | VNet, three subnets, workload NSG |
+| Workload | `rg-contoso-workload-dev` | Private NIC, Ubuntu VM, storage account/container |
+| Security | `rg-contoso-security-dev` | Key Vault and RBAC assignments |
+| Operations | `rg-contoso-management-dev` | Log Analytics, DCR, alerts, action group, Recovery Services vault |
 
-### Validation
+## VM Provisioning
 
-A harmless sample secret named `app-config` was created. The VM:
+The NIC and VM are in the workload resource group while the subnet is in the network resource group, so the NIC references the subnet by full resource ID.
 
-1. Requested a Key Vault access token from Azure Instance Metadata Service.
-2. Used the token to call the Key Vault REST endpoint.
-3. Retrieved the secret through its managed identity.
-4. Completed the operation without stored credentials, account keys, or service-principal secrets.
+The VM configuration includes:
 
-The validation output displayed only secret metadata and value length. The secret value and access token were not printed.
+- No public IP
+- SSH-key authentication
+- System-assigned managed identity
+- Standard LRS OS disk
+- Nginx installed through cloud-init
+- Boot diagnostics
+- Auto-shutdown
+- Azure Monitor Agent
 
-## Monitoring
+Azure Run Command was used for controlled validation. Azure Bastion was intentionally excluded from the final lab scope.
 
-### Log Analytics Workspace
+## Storage and Key Vault
 
-| Setting | Value |
-|---------|------|
-| SKU | PerGB2018 |
-| Retention | 30 Days |
-| Region | Canada Central |
+The StorageV2 account enforces HTTPS and TLS 1.2, disables anonymous blob access, and contains a private container. Blob operations were validated with Entra ID and Azure RBAC.
 
-### Azure Monitor Agent
+Key Vault uses Azure RBAC, soft delete, and purge protection. The VM's managed identity has `Key Vault Secrets User`; the administrator has `Key Vault Secrets Officer`. Validation confirmed secret retrieval without storing credentials on the VM.
 
-Installed on:
+## Monitoring DCR Deployment
 
-- vm-contoso-app-dev-01
+Prerequisites:
 
-Automatic extension upgrades enabled.
+- Azure CLI authenticated to the intended subscription
+- Existing management resource group
+- Existing Log Analytics workspace
+- Bicep support available through Azure CLI
 
-### Data Collection Rule
+Validate the template locally:
 
-Collected data:
+```bash
+az bicep build --file infrastructure/monitoring/dcr-linux-monitoring.bicep
+```
 
-- Heartbeat
-- CPU
-- Memory
-- Disk
-- Linux Syslog
+Deploy through the guarded helper:
 
-Destination:
+```bash
+export SUBSCRIPTION_ID='<subscription-id>'
+export LOG_ANALYTICS_WORKSPACE_ID='<full-resource-id>'
+./scripts/deploy.sh
+```
 
-- Log Analytics Workspace
+The script performs a `what-if` before deployment and never creates the VM, Key Vault, storage account, or backup vault.
 
-Association:
+## Monitoring Configuration
 
-- vm-contoso-app-dev-01
+| Component | Final configuration |
+|---|---|
+| Workspace | `law-contoso-monitoring-dev`, PerGB2018, 30-day retention |
+| Agent | Azure Monitor Agent on `vm-contoso-app-dev-01` |
+| DCR | CPU, available memory, disk free space, selected Linux Syslog |
+| Alerts | CPU above 80%; missing heartbeat for more than five minutes |
+| Notifications | Email through `ag-contoso-operations-dev` |
 
-## Alerting
+Use the checked-in queries under [`../queries/`](../queries/) for health and security investigation.
 
-### Action Group
+## Backup Configuration
 
-| Setting | Value |
-|---------|------|
-| Name | ag-contoso-operations-dev |
-| Notification | Email |
-| Common Alert Schema | Enabled |
+The Recovery Services vault `rsv-contoso-backup-dev` is in Canada Central and uses LRS. VM protection was enabled, an on-demand backup completed, and a file-system-consistent recovery point was verified.
 
-### Metric Alerts
+## Validation Checklist
 
-- High CPU utilization (>80%)
+```bash
+az account show --output table
+az group list --query "[?starts_with(name, 'rg-contoso-')].[name,location]" --output table
+az vm get-instance-view --resource-group rg-contoso-workload-dev --name vm-contoso-app-dev-01 --query "instanceView.statuses[?starts_with(code,'PowerState/')].displayStatus" --output tsv
+az monitor data-collection rule show --resource-group rg-contoso-management-dev --name dcr-contoso-vm-dev --output table
+az backup job list --resource-group rg-contoso-management-dev --vault-name rsv-contoso-backup-dev --output table
+```
 
-### Scheduled Query Alerts
+## Cleanup
 
-- Missing VM heartbeat (>5 minutes)
-
-### Validation
-
-Alerts were tested successfully by:
-
-- Generating sustained CPU utilization.
-- Stopping and restarting the Linux virtual machine.
-- Verifying fired and resolved email notifications.
+Read [docs/runbooks/resource-cleanup.md](../docs/runbooks/resource-cleanup.md) before deleting resources. The Recovery Services vault must be unprotected and cleared before its resource group can be removed. The cleanup helper defaults to a dry run and requires an explicit destructive flag.

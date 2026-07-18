@@ -22,6 +22,9 @@ param costCenter string = 'PortfolioLab'
 @description('Expiration date tag value.')
 param expirationDate string
 
+@description('Tool or workflow responsible for managing the resource.')
+param managedBy string = 'AzureCLI-Bicep'
+
 resource linuxMonitoringDcr 'Microsoft.Insights/dataCollectionRules@2024-03-11' = {
   name: dcrName
   location: location
@@ -32,6 +35,7 @@ resource linuxMonitoringDcr 'Microsoft.Insights/dataCollectionRules@2024-03-11' 
     Owner: owner
     CostCenter: costCenter
     ExpirationDate: expirationDate
+    ManagedBy: managedBy
   }
   properties: {
     description: 'Collects essential Linux performance counters and Syslog events for the Contoso development VM.'

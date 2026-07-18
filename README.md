@@ -1,219 +1,141 @@
 # Azure Small-Business Foundation
 
-## Overview
+A hands-on Azure administration portfolio project that builds a **secure, monitored, recoverable, and cost-conscious foundation** for a fictional small business in **Canada Central**.
 
-This project demonstrates the design and deployment of a secure,
-monitored, and cost-conscious Azure environment for a fictional small
-business.
+The project focuses on practical entry-level cloud operations: resource organization, private networking, identity-based access, secret management, centralized monitoring, alert validation, backup, troubleshooting, and cleanup.
 
-The environment includes Azure networking, network security groups,
-a Linux virtual machine, secure administrative access, Azure Key Vault,
-a storage account, centralized monitoring, alerting, and backup.
+## What Was Built
 
-## Business Scenario
-
-Contoso Retail Services is moving an internal administration workload
-to Microsoft Azure. The company needs a basic cloud foundation that is
-secure, organized, monitored, recoverable, and affordable.
-
-## Project Objectives
-
-- Organize Azure resources using resource groups, naming standards, and tags
-- Segment the network using multiple subnets
-- Control traffic using network security groups
-- Deploy a Linux virtual machine without exposing SSH directly to the internet
-- Store secrets securely in Azure Key Vault
-- Centralize logs in a Log Analytics workspace
-- Configure monitoring and alerts
-- Protect the virtual machine using Azure Backup
-- Document deployment, validation, troubleshooting, and cleanup procedures
-
-## Technologies
-
-- Microsoft Azure
-- Azure Virtual Network
-- Network Security Groups
-- Azure Virtual Machines
-- Azure Bastion
-- Azure Storage
-- Azure Key Vault
-- Azure Monitor
-- Log Analytics
-- Azure Monitor Agent
-- Recovery Services Vault
-- Azure CLI
-- Git and GitHub
+| Area | Implementation |
+|---|---|
+| Governance | Four purpose-specific resource groups, naming conventions, project tags, budget alert |
+| Networking | VNet with management, workload, and private-endpoint subnets; subnet-level NSG |
+| Compute | Private Ubuntu VM with no public IP, SSH keys, boot diagnostics, auto-shutdown, Nginx via cloud-init |
+| Identity | System-assigned managed identity and least-privilege Azure RBAC |
+| Storage | StorageV2 account, HTTPS-only, TLS 1.2, private blob container, Entra ID data-plane access |
+| Secrets | Key Vault with RBAC, soft delete, purge protection, and managed-identity secret retrieval |
+| Monitoring | Log Analytics, Azure Monitor Agent, Data Collection Rule, Heartbeat, Perf, and Syslog |
+| Alerting | High-CPU metric alert, missing-heartbeat log alert, action group, fired/resolved email tests |
+| Recovery | Recovery Services vault, LRS backup storage, VM protection, successful backup and recovery point |
+| Operations | KQL queries, incident report, access and cleanup runbooks, deployment evidence |
 
 ## Architecture
 
-Architecture diagram will be added after the initial environment is deployed.
+```mermaid
+flowchart LR
+  Admin[Cloud administrator] -->|Azure CLI / Portal / Run Command| Azure[Azure subscription]
 
-## Project Status
+  subgraph NET[rg-contoso-network-dev]
+    VNet[vnet-contoso-dev
+10.20.0.0/16]
+    Mgmt[snet-management
+10.20.1.0/24]
+    Work[snet-workload
+10.20.2.0/24]
+    PE[snet-private-endpoints
+10.20.3.0/24]
+    NSG[Workload NSG]
+    VNet --- Mgmt
+    VNet --- Work
+    VNet --- PE
+    NSG --> Work
+  end
 
-Completed:
+  subgraph APP[rg-contoso-workload-dev]
+    VM[Ubuntu VM
+No public IP
+Managed identity]
+    Storage[Storage account
+Private blob container]
+  end
 
-- Repository structure
-- Cost budget
-- Resource groups and tagging
-- Virtual network and subnets
-- Workload network security group
-- Private Linux virtual machine
-- System-assigned managed identity
-- Automated Nginx installation
-- Boot diagnostics
+  subgraph SEC[rg-contoso-security-dev]
+    KV[Azure Key Vault
+RBAC + purge protection]
+  end
+
+  subgraph OPS[rg-contoso-management-dev]
+    LAW[Log Analytics workspace]
+    DCR[Data Collection Rule]
+    Alerts[CPU + heartbeat alerts]
+    AG[Action group]
+    RSV[Recovery Services vault]
+  end
+
+  Work --> VM
+  VM -->|Managed identity + RBAC| KV
+  Admin -->|Entra ID + RBAC| Storage
+  VM -->|AMA| DCR --> LAW
+  LAW --> Alerts --> AG
+  VM --> RSV
+```
+
+A detailed design discussion is available in [docs/architecture/architecture.md](docs/architecture/architecture.md).
+
+## Security and Design Decisions
+
+- The VM has **no public IP address** and does not expose SSH to the internet.
+- Azure Run Command was used for controlled administrative validation; a VPN, ExpressRoute, or Bastion would be a production access option, but Bastion was intentionally excluded from this cost-conscious lab.
+- Workload access to Key Vault uses a **system-assigned managed identity**, not embedded credentials.
+- RBAC assignments are scoped to the required resource and role.
+- Blob access was validated with Microsoft Entra ID rather than account keys.
+- Monitoring collection is explicitly controlled through an Azure Monitor Data Collection Rule.
+- Backup uses locally redundant storage to match the lab's cost objective.
+
+## Monitoring and Incident Validation
+
+The Linux VM sends Heartbeat, performance counters, and selected Syslog facilities to Log Analytics through Azure Monitor Agent. Two alerts were tested end to end:
+
+1. **High CPU** — sustained processor load caused the metric alert to fire and then resolve.
+2. **Missing heartbeat** — stopping the VM caused the log alert to fire; restarting it restored heartbeat and resolved the incident.
+
+Reusable queries are stored in [`queries/`](queries/), and the tested scenario is documented in [the sample incident report](docs/incidents/sample-incident.md).
+
+## Repository Guide
+
+```text
+.
+├── docs/
+│   ├── architecture/       # Detailed design and Mermaid architecture
+│   ├── examples/           # Sanitized validation output
+│   ├── incidents/          # Sample operational incident report
+│   ├── runbooks/           # VM access and cleanup procedures
+│   └── screenshots/        # Deployment evidence and gallery
+├── infrastructure/
+│   ├── env/                # Non-secret project variables
+│   ├── monitoring/         # DCR Bicep template
+│   ├── cloud-init.yaml     # Initial VM configuration
+│   └── README.md           # Implementation notes and validation commands
+├── queries/                # KQL for health and security investigations
+└── scripts/                # Guarded helper scripts for validation/deployment and cleanup
+```
+
+## Evidence
+
+The repository includes **42 numbered screenshots** covering governance, networking, VM security, storage, Key Vault, monitoring, alerts, and backup. See the [Screenshot Gallery](docs/screenshots/gallery.md).
+
+## Cost Controls
+
+- Subscription budget and alert
 - VM auto-shutdown
+- Cost-aware VM sizing
+- 30-day Log Analytics retention
+- Locally redundant backup storage
+- No continuously running Bastion resource
+- Explicit cleanup runbook and guarded cleanup script
 
-Next phase:
+## Skills Demonstrated
 
-- Secure administrative access using Azure Bastion
-- Storage account
-- Azure Key Vault
-- Managed identity authorization
-- Log Analytics and Azure Monitor
-- Alerts and backup
+Azure CLI, Azure networking, NSGs, Linux VM administration, cloud-init, managed identities, Azure RBAC, Storage, Key Vault, Azure Monitor Agent, Data Collection Rules, Log Analytics, KQL, alerts, Recovery Services vaults, Azure Backup, Bicep validation, Git, documentation, troubleshooting, and incident response.
 
-## Virtual Machine Security
+## Reproduce or Review
 
-The Linux virtual machine was deployed without a public IP address.
-The VM uses SSH-key authentication rather than password authentication.
+This repository documents a manually deployed learning environment rather than pretending to be a complete one-command production deployment. The helper scripts validate prerequisites, deploy the version-controlled DCR, and provide guarded cleanup. Review [infrastructure/README.md](infrastructure/README.md) before running anything.
 
-Its network interface is connected to the workload subnet, which is
-protected by a subnet-level network security group. Direct SSH access
-from the internet is not permitted.
+## Project Scope
 
-A system-assigned managed identity is enabled so that the VM can later
-access Azure services without storing Azure credentials locally.
+This is a portfolio lab, not an enterprise landing zone. Production improvements would include private endpoints, firewall-restricted PaaS access, centralized identity governance, policy assignments, CI/CD, infrastructure-as-code coverage for all resources, and formal recovery testing.
 
-Nginx was installed automatically using cloud-init, and the deployment
-was validated using Azure Run Command.
+## License
 
-## Azure Monitor & Log Analytics
-
-Implemented centralized monitoring for the Linux virtual machine using Azure Monitor and Log Analytics.
-
-### Components
-
-- Log Analytics Workspace
-- Azure Monitor Agent (AMA)
-- Data Collection Rule (DCR)
-- Data Collection Rule Association
-
-### Monitoring Configuration
-
-- Heartbeat monitoring
-- CPU utilization
-- Memory availability
-- Disk free space
-- Linux Syslog collection
-
-### Validation
-
-Monitoring was verified using Kusto Query Language (KQL):
-
-- Heartbeat
-- Performance counters
-- Syslog
-
-A custom Syslog event was generated from the VM using the Linux `logger` command and successfully ingested into Log Analytics.
-
-### Skills Demonstrated
-
-- Azure Monitor
-- Log Analytics Workspace
-- Azure Monitor Agent
-- Data Collection Rules
-- KQL
-- Infrastructure Monitoring
-- Linux Operations
-
-## Azure Monitor Alerts
-
-Implemented proactive monitoring and alerting using Azure Monitor.
-
-### Components
-
-- Azure Monitor Action Group
-- Metric Alert Rules
-- Scheduled Query Alert Rules
-- Email Notifications
-
-### Alert Rules
-
-| Alert | Purpose |
-|--------|----------|
-| High CPU | Detects sustained CPU utilization above 80% |
-| Missing Heartbeat | Detects VM or monitoring agent availability issues |
-
-### Validation
-
-Both alerts were fully validated.
-
-- High CPU alert generated by creating sustained processor load.
-- Heartbeat alert generated by stopping the virtual machine.
-- Alert resolution verified after workload completion and VM restart.
-- Email notifications successfully delivered through Azure Monitor Action Groups.
-
-### Skills Demonstrated
-
-- Azure Monitor Alerts
-- Action Groups
-- Metric Alerts
-- Scheduled Query Alerts
-- Kusto Query Language (KQL)
-- Operational Monitoring
-- Incident Validation
-
-## Azure Backup
-
-To provide basic disaster recovery capabilities, Azure Backup was configured using a Recovery Services Vault.
-
-### Implemented
-
-- Created a Recovery Services Vault
-- Applied governance tags
-- Configured Locally Redundant Storage (LRS)
-- Verified Soft Delete and Enhanced Security
-- Enabled backup protection for the Linux virtual machine
-- Triggered an on-demand backup
-- Verified successful backup completion
-- Verified creation of a file-system-consistent recovery point
-
-### Validation
-
-- Backup job completed successfully
-- Recovery point successfully created
-- Backup health verified in Azure Portal
-
-## 📸 Deployment Screenshots
-
-A complete visual walkthrough of every deployment phase is available in:
-
-- [Screenshot Gallery](docs/screenshots/README.md)
-
-## Cost Management
-
-This environment is intended as a temporary portfolio lab.
-
-Cost controls include:
-
-- Small Linux VM size
-- VM auto-shutdown
-- Budget alerts
-- Temporary use of Azure Bastion
-- Short Log Analytics retention where supported
-- Complete resource cleanup after testing
-
-## Lessons Learned
-
-- Azure Monitor Agent requires a Data Collection Rule before telemetry is collected.
-- Installing the Azure Monitor Agent alone does not send monitoring data.
-- Data Collection Rule Associations connect monitored resources to monitoring policies.
-- Heartbeat data provides a quick way to validate successful agent communication.
-- KQL can be used to investigate VM health, performance, and Linux Syslog events.
-- Separating monitoring resources into a dedicated management resource group improves organization and reflects production practices.
-
-## Disclaimer
-
-This is a portfolio and learning project. It represents a simplified
-small-business Azure foundation rather than a complete enterprise-scale
-Azure landing zone.
+See [LICENSE](LICENSE).

@@ -1,12 +1,12 @@
-# Azure Small-Business Foundation – Screenshot Gallery
+# Deployment Evidence Gallery
 
-This directory contains screenshots captured throughout the deployment and validation of the **Azure Small-Business Foundation** project.
+This gallery contains **42 sequential screenshots** that demonstrate the deployed state and validation of the Azure Small-Business Foundation project. Identifiers and sensitive values are redacted where appropriate; no passwords, keys, secret values, or access tokens are included.
 
-The screenshots provide visual evidence that every major deployment, configuration change, and security validation was completed successfully.
+## How to Review the Evidence
 
----
+The sequence follows the implementation lifecycle: governance → network → compute → storage → secrets → monitoring → alerts → backup. Each filename begins with a stable two-digit number so links remain predictable.
 
-## Deployment Timeline
+## Screenshot Index
 
 | # | Screenshot | Description |
 |---|------------|-------------|
@@ -53,42 +53,31 @@ The screenshots provide visual evidence that every major deployment, configurati
 | 41 | [41-backup-job-completed.png](41-backup-job-completed.png) | Completed on-demand Azure Backup job confirming successful creation of the initial virtual machine backup. |
 | 42 | [42-vm-recovery-point.png](42-vm-recovery-point.png) | Recovery point created successfully for the virtual machine with a file-system-consistent backup. |
 
----
 
-## Security Highlights
+## Evidence Coverage
 
-The screenshots demonstrate implementation of several Azure security best practices:
+| Area | Screenshots |
+|---|---|
+| Governance and organization | 01–02 |
+| Network and private VM | 03–11 |
+| Storage and RBAC | 12–16 |
+| Key Vault and managed identity | 17–21 |
+| Log Analytics, AMA, DCR, and KQL | 22–31 |
+| Action group and alert validation | 32–38 |
+| Recovery Services vault and backup | 39–42 |
 
-- Private virtual machine without a Public IP address
-- Network Security Groups enforcing least-privilege access
-- System-assigned Managed Identity
-- Azure RBAC authorization
-- Microsoft Entra ID authentication
-- Azure Key Vault for centralized secret management
-- Private Blob Storage
-- HTTPS-only Storage Account
-- Minimum TLS 1.2 enforcement
-- Purge Protection and Soft Delete enabled
-- Secure secret retrieval without passwords, connection strings, or access keys
-- Azure Monitor Agent for centralized VM monitoring
-- Data Collection Rules for controlled telemetry collection
-- Centralized Log Analytics Workspace
-- Linux performance monitoring (CPU, memory, and disk)
-- Centralized Linux Syslog collection
-- Kusto Query Language (KQL) used to validate monitoring data ingestion
+## Security and Operations Highlights
 
+- Private VM with no public IP
+- Subnet-level NSG and effective-rule validation
+- SSH-key authentication and controlled Run Command administration
+- System-assigned managed identity and least-privilege RBAC
+- Private blob container and Entra ID data-plane access
+- Key Vault RBAC, soft delete, and purge protection
+- Centralized Heartbeat, performance, and Syslog collection
+- Fired and resolved CPU and heartbeat alert notifications
+- Successful VM backup job and file-system-consistent recovery point
 
----
+## Screenshot Standards
 
-## Notes
-
-This repository is intended as a **Azure administration project** demonstrating practical skills relevant to:
-
-- Azure Administrator
-- Cloud Administrator
-- Cloud Engineer
-- DevOps Engineer
-- Site Reliability Engineer (SRE)
-- Platform Engineer
-
-Where appropriate, subscription identifiers, tenant identifiers, and other environment-specific information have been redacted from screenshots. No secrets, passwords, access keys, or authentication tokens are stored in this repository.
+Screenshots are evidence, not deployment instructions. Resource identifiers are shown only where useful for review. Subscription IDs, tenant IDs, email addresses, secret values, access tokens, and other sensitive data should remain obscured before publishing.

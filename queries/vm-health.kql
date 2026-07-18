@@ -1,0 +1,28 @@
+// Azure Small-Business Foundation - VM health investigation
+// Adjust the VM name or time range as required.
+let TargetVm = "vm-contoso-app-dev-01";
+let Lookback = 24h;
+Heartbeat
+| where TimeGenerated >= ago(Lookback)
+| where Computer =~ TargetVm
+| summarize LastHeartbeat=max(TimeGenerated), Heartbeats=count() by Computer
+| extend MinutesSinceLastHeartbeat = datetime_diff("minute", now(), LastHeartbeat)
+| extend Health = case(MinutesSinceLastHeartbeat <= 5, "Healthy", MinutesSinceLastHeartbeat <= 15, "Degraded", "Unavailable")
+| project Computer, Health, LastHeartbeat, MinutesSinceLastHeartbeat, Heartbeats
+
+// CPU trend (run separately)
+Perf
+| where TimeGenerated >= ago(24h)
+| where Computer =~ "vm-contoso-app-dev-01"
+| where ObjectName == "Processor" and CounterName == "% Processor Time" and InstanceName == "_Total"
+| summarize AverageCpu=avg(CounterValue), PeakCpu=max(CounterValue) by bin(TimeGenerated, 5m), Computer
+| order by TimeGenerated desc
+
+// Available memory and disk free-space trend (run separately)
+Perf
+| where TimeGenerated >= ago(24h)
+| where Computer =~ "vm-contoso-app-dev-01"
+| where (ObjectName == "Memory" and CounterName == "Available MBytes")
+    or (ObjectName == "Logical Disk" and CounterName == "% Free Space")
+| summarize AverageValue=avg(CounterValue), MinimumValue=min(CounterValue) by bin(TimeGenerated, 15m), Computer, ObjectName, CounterName, InstanceName
+| order by TimeGenerated desc
